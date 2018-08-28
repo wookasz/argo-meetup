@@ -1,0 +1,72 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: placeholder-
+  labels: &stepLabels
+    app: custom-reporting
+spec:
+  entrypoint: extract-data
+
+  arguments:
+    parameters:
+      - name: bucket
+        value: custom-reports
+      - name: schema
+        value: meetup
+      - name: queryString
+        value: query
+      - name: reportName
+        value: report
+      - name: timestamp
+        value: '19980516042013'
+
+  templates:
+    - name: extract-data
+      metadata:
+        labels: *stepLabels
+      inputs:
+        parameters:
+          - name: schema
+          - name: queryString
+          - name: reportName
+      retryStrategy:
+        limit: 10
+      script:
+        # image: wookasz/meetup-data-extractor:latest
+        image: jbergknoff/postgresql-client:latest
+        command: [sh]
+        env:
+          # this is for demo purposes only, never put your DB URL in a workflow spec, instead use an appropriate
+          # secret management tool such as https://github.com/segmentio/chamber with AWS SSM parameter store
+          # or https://www.vaultproject.io/
+          - name: DATABASE_URL
+            value: postgres://postgres:supersecurehaxor@dev-postgresql:5432/postgres?sslmode=disable
+          - name: SCHEMA
+            value: '{{inputs.parameters.schema}}'
+          - name: QUERY
+            value: '{{inputs.parameters.queryString}}'
+          - name: TIMESTAMP
+            value: '{{workflow.parameters.timestamp}}'
+        source: |
+          set -ue
+          mkdir -p tmp
+          echo "SET search_path TO :schema, public;" > tmp/query.sql
+          echo "COPY (" >> tmp/query.sql
+          echo "$QUERY" >> tmp/query.sql
+          echo ") TO STDOUT DELIMITER ',' CSV HEADER;" >> tmp/query.sql
+          psql -v ON_ERROR_STOP=1 -v schema=\'${SCHEMA}\' -d ${DATABASE_URL} -f tmp/query.sql -q 2>&1 > tmp/data.csv
+      outputs:
+        artifacts:
+          - name: data
+            path: /tmp/data.csv
+            s3:
+              bucket: '{{workflow.parameters.bucket}}'
+              endpoint: argo-artifacts-minio.default:9000
+              insecure: true
+              accessKeySecret:
+                name: argo-artifacts-minio
+                key: accesskey
+              secretKeySecret:
+                name: argo-artifacts-minio
+                key: secretkey
+              key: '{{inputs.parameters.schema}}/{{inputs.parameters.reportName}}/{{workflow.parameters.timestamp}}/data.tgz'

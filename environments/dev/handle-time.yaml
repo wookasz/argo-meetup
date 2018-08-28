@@ -1,0 +1,11 @@
+report_name: handle-time
+schedule: '17 * * * *'
+schema: meetup
+sql: |
+  select sid,
+    max(case when type = 'message_sent' then timestamp end) -
+    min(case when type = 'message_received' then timestamp end) as handle_time
+  from events
+  group by sid
+  having count(*) >= 2
+  order by handle_time desc
