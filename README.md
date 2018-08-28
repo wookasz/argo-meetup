@@ -125,7 +125,7 @@ $ helm upgrade --install handle-time report -f environments/dev/handle-time.yaml
 You can also override the cron schedule right on the command line. For example to run on the 12th minute of every hour:
 
 ```bash
-$	helm upgrade --install handle-time report -f environments/dev/handle-time.yaml --set schedule="12 * * * *"
+$ helm upgrade --install handle-time report -f environments/dev/handle-time.yaml --set schedule="12 * * * *"
 ```
 
 You can modify the query in `handle-time.yaml` to see how you can generate different reports, changing only that file.
