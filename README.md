@@ -27,6 +27,12 @@ $ brew install kubernetes-helm
 $ helm init
 ```
 
+Note: `tiller`, the service which powers `helm` on the cluster side, can take a bit of time to start up. You can check that it's running with:
+
+```bash
+$ kubectl -n kube-system get pod -l name=tiller
+```
+
 Read more: https://helm.sh/
 
 ## Deploy argo
@@ -99,7 +105,7 @@ A provided script will generate some `SQL` to create a new schema, an `events` t
 The generated events simulate a very simple scenario where the system can send and receive messages in the context of a "session". There are two corresponding events `message_received` and `message_sent`. The report we run will will compute the duration of each session.
 
 ```bash
-python scripts/gen-data.py | psql -d postgres://postgres:supersecurehaxor@db:5432/postgres?sslmode=disable -a
+$ python scripts/gen-data.py | psql -d postgres://postgres:supersecurehaxor@db:5432/postgres?sslmode=disable -a
 ```
 
 ## Build the "runner" image
