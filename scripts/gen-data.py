@@ -17,7 +17,7 @@ min_events_per_session = 1
 max_events_per_session = 10
 min_sec_between_events = 1
 max_sec_between_events = 600
-ev_types = ['message_received', 'message_sent']
+actions = ['message received', 'message sent']
 
 
 # timedelta with random number of seconds
@@ -42,14 +42,14 @@ def generate_sessions(n):
 def generate_session_events(sid, n_events):
     ts = datetime.datetime.utcnow() + rsecs()
     # always start with a message_received event
-    events = [(uuid.uuid4(), sid, ev_types[0], ts)]
+    events = [(uuid.uuid4(), actions[0], sid, ts)]
     for i in range(n_events - 2):
         ts = ts + rsecs()
-        events.append((uuid.uuid4(), sid, random.choice(ev_types), ts))
+        events.append((uuid.uuid4(), random.choice(actions), sid, ts))
     # always finish with a message_sent event
     if n_events > 1:
         ts = ts + rsecs()
-        events.append((uuid.uuid4(), sid, ev_types[-1], ts))
+        events.append((uuid.uuid4(), actions[-1], sid, ts))
     return events
 
 
@@ -63,8 +63,15 @@ def generate_events():
     return events
 
 
-print('create schema {};'.format(schema))
+print('create schema if not exists {};'.format(schema))
 print('set schema \'{}\';'.format(schema))
-print('create table {} (id text primary key, sid text, type text, timestamp timestamptz default now());'.format(table))
+create_table_sql = """
+create table if not exists {} (
+    id text primary key not null,
+    action text not null,
+    sid text not null,
+    timestamp timestamptz default now());
+""".format(table)
+print(create_table_sql)
 for e in generate_events():
     insert(e[0], e[1], e[2], e[3])

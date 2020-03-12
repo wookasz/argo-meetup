@@ -17,14 +17,16 @@ spec:
         spec:
           containers:
             - name: rep-{{.Values.report_name}}-{{.Values.schema}}-r
-              image: sagan/meetup-runner:latest
-              command: [sh]
-              args: ["-c", "argo submit \
-                      --wait \
-                      --generate-name={{.Values.report_name}}-{{.Values.schema}}- \
-                      -p queryString=\"{{js .Values.sql}}\" \
-                      -p reportName={{.Values.report_name}} \
-                      -p timestamp=$$(date -u +%Y%m%d%H%M%S) \
-                      workflow.yaml"]
+              image: {{.Values.image}}:{{.Values.image_tag}}
+              imagePullPolicy: Always
+              args:
+                - "submit"
+                - "--wait"
+                - "--generate-name={{.Values.report_name}}-{{.Values.schema}}-"
+                - "-p"
+                - "queryString={{js .Values.sql}}"
+                - "-p"
+                - "reportName={{.Values.report_name}}"
+                - "workflow.yaml"
           restartPolicy: Never
       backoffLimit: 1

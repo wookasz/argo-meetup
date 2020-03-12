@@ -3,8 +3,8 @@ schedule: '17 * * * *'
 schema: meetup
 sql: |
   select sid,
-    max(case when type = 'message_sent' then timestamp end) -
-    min(case when type = 'message_received' then timestamp end) as handle_time
+    max(case when action = 'message sent' then timestamp end) -
+    min(case when action = 'message received' then timestamp end) as handle_time
   from events
   group by sid
   having count(*) >= 2

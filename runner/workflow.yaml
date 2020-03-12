@@ -32,7 +32,6 @@ spec:
       retryStrategy:
         limit: 10
       script:
-        # image: wookasz/meetup-data-extractor:latest
         image: jbergknoff/postgresql-client:latest
         command: [sh]
         env:
@@ -40,13 +39,11 @@ spec:
           # secret management tool such as https://github.com/segmentio/chamber with AWS SSM parameter store
           # or https://www.vaultproject.io/
           - name: DATABASE_URL
-            value: postgres://postgres:supersecurehaxor@dev-postgresql:5432/postgres?sslmode=disable
+            value: postgres://postgres:supersecurehaxor@postgresql:5432/postgres?sslmode=disable
           - name: SCHEMA
             value: '{{inputs.parameters.schema}}'
           - name: QUERY
             value: '{{inputs.parameters.queryString}}'
-          - name: TIMESTAMP
-            value: '{{workflow.parameters.timestamp}}'
         source: |
           set -ue
           mkdir -p tmp
@@ -59,6 +56,8 @@ spec:
         artifacts:
           - name: data
             path: /tmp/data.csv
+            archive:
+              none: {}
             s3:
               bucket: '{{workflow.parameters.bucket}}'
               endpoint: argo-artifacts-minio.default:9000
@@ -69,4 +68,4 @@ spec:
               secretKeySecret:
                 name: argo-artifacts-minio
                 key: secretkey
-              key: '{{inputs.parameters.schema}}/{{inputs.parameters.reportName}}/{{workflow.parameters.timestamp}}/data.tgz'
+              key: '{{inputs.parameters.schema}}/{{inputs.parameters.reportName}}/{{workflow.creationTimestamp}}/data.csv'
