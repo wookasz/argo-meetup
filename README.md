@@ -203,6 +203,6 @@ helm install handle-time report --set image="$DOCKERHUB_USER/meetup_runner" --se
 You can modify the query in `handle-time.yaml` to see how you can generate different reports, changing only that file.
 
 ## Verify results
-You can view the workflow by navigating your browser to http://localhost:80, or whatever port you configured `argo-ui` to use.
+You can view the workflow by navigating your browser to http://localhost:2746, or whatever port you configured `argo-ui` to use.
 
 To see the output of the report navigate to http://http://localhost:9000/minio/custom-reports/meetup/handle-time/. You'll see a timestamped subdirectory for every run of the report. The subdirectory will contain `data.tgz` which is a compressed archive containing your output CSV.
